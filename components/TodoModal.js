@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Keyboard,
+  Animated,
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import colors from '../Colors';
@@ -27,12 +28,21 @@ export default class TodoModal extends React.Component {
 
   addTodo = () => {
     let list = this.props.list;
-    list.todos.push({ title: this.state.newTodo, completed: false });
+
+    if (!list.todos.some(todo => todo.title === this.state.newTodo)) {
+      list.todos.push({ title: this.state.newTodo, completed: false });
+      this.props.updateList(list);
+    }
+
+    this.setState({ newTodo: '' });
+    Keyboard.dismiss();
+  };
+
+  deleteTodo = index => {
+    let list = this.props.list;
+    list.todos.splice(index, 1);
 
     this.props.updateList(list);
-    this.setState({ newTodo: '' });
-
-    Keyboard.dismiss();
   };
 
   renderTodo = (todo, index) => {
@@ -57,6 +67,13 @@ export default class TodoModal extends React.Component {
         >
           {todo.title}
         </Text>
+        <AntDesign
+          name="delete"
+          size={24}
+          color="red"
+          onPress={() => this.deleteTodo(index)}
+          style={{ paddingLeft: 16 }}
+        />
       </View>
     );
   };
@@ -93,15 +110,11 @@ export default class TodoModal extends React.Component {
             </View>
           </View>
 
-          <View style={[styles.section, { flex: 3 }]}>
+          <View style={[styles.section, { flex: 3, marginVertical: 16 }]}>
             <FlatList
               data={list.todos}
               renderItem={({ item, index }) => this.renderTodo(item, index)}
               keyExtractor={item => item.title}
-              contentContainerStyle={{
-                paddingHorizontal: 32,
-                paddingVertical: 64,
-              }}
               showsVerticalScrollIndicator={false}
             />
           </View>
@@ -132,13 +145,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   section: {
-    flex: 1,
     alignSelf: 'stretch',
   },
   header: {
     justifyContent: 'flex-end',
     marginLeft: 64,
     borderBottomWidth: 3,
+    paddingTop: 16,
   },
   title: {
     fontSize: 30,
@@ -148,13 +161,14 @@ const styles = StyleSheet.create({
   taskCount: {
     marginTop: 4,
     marginBottom: 16,
-    color: colors.grey,
+    color: colors.gray,
     fontWeight: '600',
   },
   footer: {
     paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 16,
   },
   input: {
     flex: 1,
@@ -174,10 +188,18 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingLeft: 32,
   },
   todo: {
     color: colors.black,
     fontWeight: '700',
     fontSize: 16,
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: colors.red,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
   },
 });
